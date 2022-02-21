@@ -7,50 +7,72 @@
 
 import UIKit
 
-class LoginViewController: UIViewController, UITextFieldDelegate {
+class LoginViewController: UIViewController {
 
     @IBOutlet var userNameTextField: UITextField!
     @IBOutlet var passwordTextField: UITextField!
     
+    // MARK: - Private properties
+    private let user = "User"
+    private let password = "Password"
+    
+    // MARK: Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if passwordTextField.text == "0000",
-           userNameTextField.text == "Alex" {
-            guard let loginVC = segue.destination as? WelcomeViewController else {return}
-            loginVC.welcomValue = userNameTextField.text
-        } else {
-            showAlert(with: "Invilid username or password", and: "Please enter a correct username and password")
+        guard let welcomeVC = segue.destination as? WelcomeViewController else { return }
+        welcomeVC.user = user
+    }
+    
+    // MARK: IBActions
+    @IBAction func logInPressed() {
+        if userNameTextField.text != user || passwordTextField.text != password {
+            showAlert(
+                title: "Invalid login or password",
+                message: "Please, enter correct login and password",
+                textField: passwordTextField
+            )
         }
     }
     
-    @IBAction func forgotUserNameButtonPressed() {
-        showAlert(with: "Oops!", and: "Your name is Alex")
+    @IBAction func forgotRegisterData(_ sender: UIButton) {
+        sender.tag == 0
+            ? showAlert(title: "Oops!", message: "Your name is \(user) 😉")
+            : showAlert(title: "Oops!", message: "Your password is \(password) 😉")
     }
-    @IBAction func forgotPasswordButtonPressed() {
-        showAlert(with: "Oops!", and: "Your password is 0000")
-    }
-
-    @IBAction func unwind(for segue: UIStoryboardSegue) {
-        guard let _ = segue.source as? WelcomeViewController else {return}
+    
+    @IBAction func unwindSegue(segue: UIStoryboardSegue) {
         userNameTextField.text = ""
         passwordTextField.text = ""
-        
-        }
     }
-
+    
+}
 
 // MARK: - Private Methods
 extension LoginViewController {
-    private func showAlert(with title: String, and messege: String) {
-        let alert = UIAlertController(title: title, message: messege, preferredStyle: .alert)
+    private func showAlert(title: String, message: String, textField: UITextField? = nil) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let okAction = UIAlertAction(title: "OK", style: .default) { _ in
-            self.passwordTextField.text = ""
+            textField?.text = ""
         }
         alert.addAction(okAction)
         present(alert, animated: true)
-        
     }
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        self.view.endEditing(true)
-    }
-
 }
+
+// MARK: - UITextFieldDelegate
+extension LoginViewController: UITextFieldDelegate {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        view.endEditing(true)
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == userNameTextField {
+            passwordTextField.becomeFirstResponder()
+        } else {
+            logInPressed()
+            performSegue(withIdentifier: "showWelcomeVC", sender: nil)
+        }
+        return true
+    }
+}
+
